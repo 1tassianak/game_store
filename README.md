@@ -117,3 +117,11 @@ Este projeto segue o padrão de arquitetura **MVVM (Model-View-ViewModel)** para
 
 - **main.dart**:
     - Arquivo principal que inicializa o aplicativo, configura o Firebase e define a tela inicial.
+
+### Versões do Framework
+
+- **Flutter**:
+  - 3.24.3.
+
+- **Dart**:
+  - 3.5.3.

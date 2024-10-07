@@ -197,13 +197,17 @@ class _GameListScreenState extends State<GameListScreen> {
                 ),
                 items: lancamentos.map((game){
                   return GestureDetector(
-                    onTap: () {
-                      Navigator.push(
+                    onTap: () async {
+                      bool? updated = await Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => GameDetalheScreen(game: game),
                         ),
                       );
+                      if (updated == true) {
+                        await loadGames();
+                        setState(() {});
+                      }
                     },
                     child: Card(
                       child: ClipRRect(
@@ -246,13 +250,17 @@ class _GameListScreenState extends State<GameListScreen> {
                   itemBuilder: (context, index){
                     Game game = destaques[index];
                     return GestureDetector(
-                      onTap: (){
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => GameDetalheScreen(game: game),
-                            ),
+                      onTap: () async {
+                        bool? updated = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => GameDetalheScreen(game: game),
+                          ),
                         );
+                        if (updated == true) {
+                          await loadGames();
+                          setState(() {});
+                        }
                       },
                       child: Card(
                         child: ListTile(

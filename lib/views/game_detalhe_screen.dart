@@ -1,4 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:game_store/views/cadastro_game_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/game.dart';
 
@@ -17,15 +19,44 @@ class GameDetalheScreen extends StatelessWidget {
     }
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF161616),
       appBar: AppBar(
-        title: const Text('Detalhes do Jogo'),
+        iconTheme: const IconThemeData(
+          color: Colors.white, // Define a cor dos ícones do AppBar (incluindo a seta de voltar)
+        ),
+        title: const Text(
+          'Detalhes do Jogo',
+          style: TextStyle(
+              color: Colors.white, fontSize: 26, fontFamily: 'Alata'),
+        ),
         backgroundColor: const Color(0xFF161616),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.edit),
+            onPressed: () async {
+              // Navega para a tela de edição do game
+              bool? updated = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CadastroGameScreen(game: game),
+                ),
+              );
+              if (updated == true) {
+                Navigator.pop(context, true); // Passa true para a GameListScreen indicando atualização
+              }
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.delete),
+            onPressed: () {
+              // Função para deletar o jogo
+              _deleteGame(context);
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -37,7 +68,9 @@ class GameDetalheScreen extends StatelessWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: Image.network(
-                  game.img ?? '',
+                  game.img != null && game.img!.isNotEmpty
+                      ? game.img!
+                      : "https://www.designi.com.br/images/preview/10883080.jpg", // Imagem padrão
                   fit: BoxFit.cover,
                   width: double.infinity,
                   height: 200,
@@ -84,7 +117,7 @@ class GameDetalheScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   _buildInfoCard('Rating', "${game.rating?.toStringAsFixed(1)}★"),
-                  _buildInfoCard('Downloads', "${game.downloads?.toStringAsFixed(0)} mil+"),
+                  _buildInfoCard('Downloads', "${game.downloads?.toStringAsFixed(0)}+"),
                   _buildInfoCard('Categoria', game.categoria ?? ''),
                 ],
               ),
@@ -243,4 +276,21 @@ class GameDetalheScreen extends StatelessWidget {
     );
   }
 
+  // Método para deletar o jogo
+  void _deleteGame(BuildContext context) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('games')
+          .doc(game.id)
+          .delete();
+      Navigator.pop(context); // Volta à tela anterior após deletar
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Jogo deletado com sucesso!')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Erro ao deletar o jogo.')),
+      );
+    }
+  }
 }

@@ -7,7 +7,10 @@ import 'package:uuid/uuid.dart';
 import '../models/game.dart';
 
 class CadastroGameScreen extends StatefulWidget {
-  const CadastroGameScreen({super.key});
+
+  final Game? game; // Recebe o objeto Game se for uma edição
+
+  const CadastroGameScreen({super.key, this.game});
 
   @override
   State<CadastroGameScreen> createState() => _CadastroGameScreenState();
@@ -54,12 +57,12 @@ class _CadastroGameScreenState extends State<CadastroGameScreen> {
       });
 
       try {
-        // Cria ID único para o game
-        String gameId = const Uuid().v4();
+        // Se for edição, usa o ID existente, senão cria um novo ID
+        String gameId = widget.game?.id ?? const Uuid().v4();
 
         // Upload de imagens para o Firebase Storage
-        String? imageUrl;
-        String? thumbUrl;
+        String? imageUrl = widget.game?.img;
+        String? thumbUrl = widget.game?.thumb;
         if (_imageFile != null) {
           imageUrl = await _uploadImageToStorage(gameId, _imageFile!, "image");
         }
@@ -67,7 +70,7 @@ class _CadastroGameScreenState extends State<CadastroGameScreen> {
           thumbUrl = await _uploadImageToStorage(gameId, _thumbFile!, "thumb");
         }
 
-        // Criação do objeto Game
+        // Criação ou atualização do objeto Game
         Game newGame = Game(
           id: gameId,
           nome: nomeController.text.trim(),
@@ -81,7 +84,7 @@ class _CadastroGameScreenState extends State<CadastroGameScreen> {
           link: linkController.text.trim(),
         );
 
-        // Salvar no Firestore
+        // Salvar ou atualizar no Firestore
         await FirebaseFirestore.instance
             .collection('games')
             .doc(gameId)
@@ -89,15 +92,15 @@ class _CadastroGameScreenState extends State<CadastroGameScreen> {
 
         // Exibe mensagem de sucesso
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Game cadastrado com sucesso!')),
+          const SnackBar(content: Text('Game salvo com sucesso!')),
         );
 
         // Retorna true para a tela anterior
         Navigator.pop(context, true); // Passa true indicando que houve uma atualização
       } catch (e) {
-        print("Erro ao cadastrar o game: $e");
+        print("Erro ao salvar o game: $e");
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Erro ao cadastrar o game. Tente novamente.')),
+          const SnackBar(content: Text('Erro ao salvar o game. Tente novamente.')),
         );
       } finally {
         setState(() {
@@ -110,8 +113,7 @@ class _CadastroGameScreenState extends State<CadastroGameScreen> {
   // Método para upload de imagem para o Firebase Storage
   Future<String> _uploadImageToStorage(String gameId, File image, String type) async {
     try {
-      Reference storageRef =
-      FirebaseStorage.instance.ref().child('games/$gameId/$type');
+      Reference storageRef = FirebaseStorage.instance.ref().child('games/$gameId/$type');
       UploadTask uploadTask = storageRef.putFile(image);
       TaskSnapshot snapshot = await uploadTask;
       return await snapshot.ref.getDownloadURL();
@@ -121,18 +123,23 @@ class _CadastroGameScreenState extends State<CadastroGameScreen> {
     }
   }
 
-  // Método para limpar o formulário
-  void _clearForm() {
-    nomeController.clear();
-    sobreController.clear();
-    ratingController.clear();
-    downloadsController.clear();
-    categoriaController.clear();
-    lancamentoOuDestaqueSelecionado = null;
-    linkController.clear();
-    _imageFile = null;
-    _thumbFile = null;
-    setState(() {});
+  @override
+  void initState() {
+    super.initState();
+    _loadGameData();
+  }
+
+  // Carregar os dados do game se estivermos no modo de edição
+  void _loadGameData() {
+    if (widget.game != null) {
+      nomeController.text = widget.game!.nome ?? '';
+      sobreController.text = widget.game!.sobre ?? '';
+      ratingController.text = widget.game!.rating?.toString() ?? '';
+      downloadsController.text = widget.game!.downloads?.toString() ?? '';
+      categoriaController.text = widget.game!.categoria ?? '';
+      linkController.text = widget.game!.link ?? '';
+      lancamentoOuDestaqueSelecionado = widget.game!.lancamentoOuDestaque;
+    }
   }
 
   @override
@@ -272,6 +279,12 @@ class _CadastroGameScreenState extends State<CadastroGameScreen> {
                     width: 100,
                     height: 100,
                   )
+                      : widget.game?.img != null
+                      ? Image.network(
+                    widget.game!.img!,
+                    width: 100,
+                    height: 100,
+                  )
                       : const Text("Nenhuma imagem selecionada"),
                   ElevatedButton(
                     onPressed: () => _pickImage(false),
@@ -288,6 +301,12 @@ class _CadastroGameScreenState extends State<CadastroGameScreen> {
                   _thumbFile != null
                       ? Image.file(
                     _thumbFile!,
+                    width: 100,
+                    height: 100,
+                  )
+                      : widget.game?.thumb != null
+                      ? Image.network(
+                    widget.game!.thumb!,
                     width: 100,
                     height: 100,
                   )

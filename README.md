@@ -2,7 +2,7 @@
 
 ![Tela Login](img/login.jpg)
 ![Tela Inicial](img/lancamentos.jpg)
-![Tela Detalhes](img/detalhes.jpg)
+![Tela Detalhes](img/detalhes.png)
 
 ## Fonte utilizada
 

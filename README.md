@@ -6,7 +6,7 @@
 
 ## Fonte utilizada
 
-<h1 style="font-family: 'Alata', sans-serif;">Google fonts: Alata</h1>
+<h3 style="font-family: 'Alata', sans-serif;">Google fonts: Alata</h3>
 
 ## Paleta de cores
 
